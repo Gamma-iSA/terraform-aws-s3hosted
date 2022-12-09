@@ -10,7 +10,7 @@ locals {
   subdomain   = local.is_prod ? var.subdomain : format("%s-%s", var.subdomain, var.environment)
   bucket_name = format("%s.%s", local.subdomain, var.site_domain)
 
-  files = {for k,v in fileset(var.path_to_deploy_files, "*") : k => format("%s%s",var.path_to_deploy_files,v)}
+  files = { for k, v in fileset(var.path_to_deploy_files, "*") : k => format("%s%s", var.path_to_deploy_files, v) }
 }
 
 resource "aws_s3_bucket" "site" {
@@ -112,14 +112,14 @@ data "aws_iam_policy_document" "S3_read_files" {
       aws_s3_bucket.site.arn,
       format("%s/*", aws_s3_bucket.site.arn)
     ]
-    
+
     actions = [
       "s3:GetObject"
     ]
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceArn"
-      values   = [ aws_cloudfront_distribution.dist.arn ]
+      values   = [aws_cloudfront_distribution.dist.arn]
     }
   }
 }
@@ -175,10 +175,10 @@ resource "aws_acm_certificate_validation" "cert" {
 }
 
 resource "aws_cloudfront_distribution" "dist" {
-  
+
   origin {
-    domain_name = aws_s3_bucket.site.bucket_domain_name
-    origin_id   = aws_s3_bucket.site.id
+    domain_name              = aws_s3_bucket.site.bucket_domain_name
+    origin_id                = aws_s3_bucket.site.id
     origin_access_control_id = aws_cloudfront_origin_access_control.origin_access_control.id
   }
   enabled             = true
@@ -199,16 +199,16 @@ resource "aws_cloudfront_distribution" "dist" {
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = aws_s3_bucket.site.id
 
-    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.this.id
-    cache_policy_id = data.aws_cloudfront_cache_policy.this.id
+    origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.this.id
+    cache_policy_id            = data.aws_cloudfront_cache_policy.this.id
     response_headers_policy_id = aws_cloudfront_response_headers_policy.this.id
 
-    compress = true
+    compress               = true
     viewer_protocol_policy = "redirect-to-https"
 
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
+    min_ttl     = 0
+    default_ttl = 3600
+    max_ttl     = 86400
   }
 
   viewer_certificate {
@@ -229,30 +229,30 @@ resource "aws_cloudfront_response_headers_policy" "this" {
   name    = "request-headers-policy"
   comment = "Security Best Practices"
   security_headers_config {
-    
+
     content_type_options {
-      override = true  
+      override = true
     }
     frame_options {
       frame_option = "SAMEORIGIN"
-      override = true
-    } 
-    
-    referrer_policy {
-    override = true
-    referrer_policy =   "strict-origin-when-cross-origin"
+      override     = true
     }
-    
+
+    referrer_policy {
+      override        = true
+      referrer_policy = "strict-origin-when-cross-origin"
+    }
+
     strict_transport_security {
       access_control_max_age_sec = 84200
-      preload = true
-      include_subdomains = true
-      override = true
+      preload                    = true
+      include_subdomains         = true
+      override                   = true
     }
 
     xss_protection {
       mode_block = true
-      override = true
+      override   = true
       protection = true
     }
   }
@@ -289,14 +289,3 @@ resource "aws_route53_record" "this" {
   records = [aws_cloudfront_distribution.dist.domain_name]
 }
 
-resource "null_resource" "deploy" {
-  triggers = {
-    "timer" = timestamp()
-  }
-  provisioner "local-exec" {
-    command = <<EOF
-    aws s3 sync ${var.path_to_deploy_files} s3://${aws_s3_bucket.site.id}/ --delete
-    aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.dist.id} --paths '/*'
-    EOF
-  }
-}
