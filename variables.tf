@@ -18,7 +18,7 @@ variable "environment" {
   type        = string
   description = "should attend to one of prd, dev, hml"
   validation {
-    condition     = try(length(regex("(prd|dev|hml)", var.environment)) == 1, false)
+    condition     = try(length(regex("(prd|dev|stg)", var.environment)) == 1, false)
     error_message = "Try one valid value."
   }
 }
