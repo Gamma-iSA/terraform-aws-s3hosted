@@ -18,6 +18,7 @@ locals {
 resource "aws_s3_bucket" "site" {
   bucket = local.bucket_name
   tags = local.tags
+  force_destroy = true
 }
 
 # resource "aws_s3_bucket_acl" "example_bucket_acl" {
@@ -129,7 +130,7 @@ data "aws_iam_policy_document" "S3_read_files" {
 
 
 resource "aws_cloudfront_origin_access_control" "origin_access_control" {
-  name                              = "control-access-${var.subdomain}"
+  name                              = "control-access-${var.environment}-${var.subdomain}"
   description                       = "Control Origin for S3 for ${var.subdomain}"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
@@ -231,7 +232,7 @@ data "aws_cloudfront_cache_policy" "this" {
 }
 
 resource "aws_cloudfront_response_headers_policy" "this" {
-  name    = "request-headers-policy"
+  name    = "request-headers-policy-${var.environment}-${var.subdomain}"
   comment = "Security Best Practices"
   security_headers_config {
 
