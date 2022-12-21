@@ -295,14 +295,3 @@ resource "aws_route53_record" "this" {
   records = [aws_cloudfront_distribution.dist.domain_name]
 }
 
-resource "null_resource" "deploy" {
-  triggers = {
-    "timer" = timestamp()
-  }
-  provisioner "local-exec" {
-    command = <<EOF
-    aws s3 sync ${var.path_to_deploy_files} s3://${aws_s3_bucket.site.id}/ --delete
-    aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.dist.id} --paths '/*'
-    EOF
-  }
-}
