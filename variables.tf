@@ -34,6 +34,11 @@ variable "path_to_deploy_files" {
 
 variable "tags" {
   description = "Tag resoureces"
-  type = map(any)
-  default = {}
+  type        = map(any)
+  default     = {}
+}
+
+variable "waf_acl_arn" {
+  default     = null
+  description = "Insert ARN String if needed for a WAF v2 type"
 }

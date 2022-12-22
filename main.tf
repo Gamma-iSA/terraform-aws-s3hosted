@@ -16,8 +16,8 @@ locals {
 }
 
 resource "aws_s3_bucket" "site" {
-  bucket = local.bucket_name
-  tags = local.tags
+  bucket        = local.bucket_name
+  tags          = local.tags
   force_destroy = true
 }
 
@@ -146,7 +146,7 @@ resource "aws_acm_certificate" "cert" {
   domain_name       = format("%s.%s", local.subdomain, var.site_domain)
   validation_method = "DNS"
 
-  tags =merge(local.tags,{
+  tags = merge(local.tags, {
     Name = var.site_domain
   })
 }
@@ -176,7 +176,7 @@ resource "aws_route53_record" "cert_validation" {
 resource "aws_acm_certificate_validation" "cert" {
   certificate_arn         = aws_acm_certificate.cert.arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
-  
+
 }
 
 resource "aws_cloudfront_distribution" "dist" {
@@ -192,6 +192,7 @@ resource "aws_cloudfront_distribution" "dist" {
   aliases = [
     local.bucket_name,
   ]
+  web_acl_id = var.waf_acl_arn
 
   restrictions {
     geo_restriction {
@@ -294,4 +295,3 @@ resource "aws_route53_record" "this" {
 
   records = [aws_cloudfront_distribution.dist.domain_name]
 }
-
