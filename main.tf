@@ -7,7 +7,7 @@
 locals {
   is_prod = var.environment == "prd"
 
-  subdomain   = local.is_prod ? var.subdomain : format("%s-%s", var.subdomain, var.environment)
+  subdomain   = var.subdomain #local.is_prod ? var.subdomain : format("%s.%s", var.subdomain, var.environment)
   bucket_name = format("%s.%s", local.subdomain, var.site_domain)
 
   files = { for k, v in fileset(var.path_to_deploy_files, "*") : k => format("%s%s", var.path_to_deploy_files, v) }
@@ -250,8 +250,12 @@ resource "aws_cloudfront_response_headers_policy" "this" {
       referrer_policy = "strict-origin-when-cross-origin"
     }
 
+    # content_security_policy {
+
+    # }
+
     strict_transport_security {
-      access_control_max_age_sec = 84200
+      access_control_max_age_sec = 2592000
       preload                    = true
       include_subdomains         = true
       override                   = true
