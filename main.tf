@@ -7,7 +7,7 @@
 locals {
   is_prod = var.environment == "prd"
 
-  subdomain   = var.subdomain #local.is_prod ? var.subdomain : format("%s.%s", var.subdomain, var.environment)
+  subdomain   = local.is_prod ? var.subdomain : format("%s.%s", var.subdomain, var.environment)
   bucket_name = format("%s.%s", local.subdomain, var.site_domain)
 
   files = { for k, v in fileset(var.path_to_deploy_files, "*") : k => format("%s%s", var.path_to_deploy_files, v) }
