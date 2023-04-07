@@ -152,7 +152,7 @@ resource "aws_acm_certificate" "cert" {
 }
 
 data "aws_route53_zone" "domain" {
-  name = format("%s.", var.site_domain)
+  name = format("%s.", local.is_prod ? var.site_domain : "${var.environment}.${var.site_domain}")
 }
 
 resource "aws_route53_record" "cert_validation" {
@@ -299,7 +299,7 @@ resource "aws_cloudfront_response_headers_policy" "this" {
 
 resource "aws_route53_record" "this" {
   zone_id = data.aws_route53_zone.domain.zone_id
-  name    = local.subdomain
+  name    = var.subdomain
   ttl     = 1
   type    = "CNAME"
 
